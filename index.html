@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Repository Explorer - sportomax1</title>
+    <title>GitHub Explorer - sportomax1</title>
     <style>
         * {
             margin: 0;
@@ -365,6 +365,104 @@
             gap: 1rem;
         }
 
+        .simple-html-container {
+            padding: 2rem;
+        }
+
+        .simple-html-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .simple-html-button {
+            background: linear-gradient(135deg, #21262d, #30363d);
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 1rem 1rem;
+            color: #e6edf3;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid #7c3aed;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: left;
+        }
+
+        .simple-html-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #7c3aed, #58a6ff);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .simple-html-button:hover {
+            background: linear-gradient(135deg, #30363d, #40464d);
+            border-color: #58a6ff;
+            border-left-color: #58a6ff;
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(88, 166, 255, 0.2);
+        }
+
+        .simple-html-button:hover::before {
+            transform: scaleX(1);
+        }
+
+        .simple-file-path {
+            flex: 1;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #e6edf3;
+        }
+
+        .simple-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .simple-action-btn {
+            border: none;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .simple-code-btn {
+            background: linear-gradient(135deg, #238636, #2ea043);
+            color: white;
+        }
+
+        .simple-code-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 10px rgba(46, 160, 67, 0.4);
+        }
+
+        .simple-launch-btn {
+            background: linear-gradient(135deg, #ffa500, #ff6b35);
+            color: white;
+        }
+
+        .simple-launch-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 10px rgba(255, 165, 0, 0.4);
+        }
+
         .html-file-card {
             background: rgba(255, 165, 0, 0.1);
             border: 1px solid rgba(255, 165, 0, 0.3);
@@ -652,11 +750,12 @@
             background: #21262d;
             border: 1px solid #30363d;
             color: #8b949e;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            min-width: 2.5rem;
         }
 
         .token-btn:hover {
@@ -673,7 +772,7 @@
 
         .button-group {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.25rem;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -682,12 +781,13 @@
             background: linear-gradient(135deg, #7c3aed, #58a6ff);
             border: 1px solid #7c3aed;
             color: white;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
+            min-width: 2.5rem;
         }
 
         .clear-cache-btn {
@@ -893,11 +993,26 @@
             .controls {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 0.75rem;
+                gap: 0.5rem;
             }
 
             .search-box {
                 min-width: unset;
+                order: 3;
+            }
+
+            .mode-toggle {
+                margin-right: 0;
+                order: 1;
+            }
+
+            .view-toggle {
+                order: 2;
+            }
+
+            .button-group {
+                order: 4;
+                gap: 0.25rem;
             }
 
             .repo-grid, .html-grid {
@@ -905,28 +1020,60 @@
             }
 
             .header {
-                padding: 1rem;
+                padding: 0.75rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .header p {
+                font-size: 0.9rem;
+                margin-bottom: 0.75rem;
             }
 
             .container {
-                padding: 1rem;
+                padding: 0.75rem;
             }
 
-            .mode-toggle {
-                margin-right: 0;
+            .simple-html-button {
+                padding: 0.75rem 1rem;
+            }
+
+            .simple-file-path {
+                font-size: 0.9rem;
+            }
+
+            .simple-actions {
+                gap: 0.25rem;
+            }
+
+            .simple-action-btn {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            /* Make buttons emoji-only on mobile */
+            .load-data-btn, .clear-cache-btn, .token-btn {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                max-width: 3rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🚀 GitHub Repository Explorer</h1>
+        <h1>🚀 GitHub Explorer</h1>
         <p>Exploring repositories for <strong>sportomax1</strong></p>
         
         <div class="controls">
             <div class="mode-toggle">
-                <button id="repoMode" class="active">📊 Repository Manager</button>
-                <button id="htmlMode">🌐 HTML Web Viewer</button>
+                <button id="repoMode" class="active">🗂️</button>
+                <button id="htmlMode">🌐</button>
+                <button id="simpleMode">⚡</button>
             </div>
             
             <div class="search-box">
@@ -939,9 +1086,9 @@
             </div>
             
             <div class="button-group">
-                <button id="tokenBtn" class="token-btn" onclick="showTokenDialog()">🔑 API Token</button>
-                <button id="loadDataBtn" class="load-data-btn" onclick="loadGitHubData()">🔄 Load GitHub Data</button>
-                <button id="clearCacheBtn" class="clear-cache-btn" onclick="clearCache()" style="display: none;">🗑️ Clear Cache</button>
+                <button id="tokenBtn" class="token-btn" onclick="showTokenDialog()">🔑</button>
+                <button id="loadDataBtn" class="load-data-btn" onclick="loadGitHubData()">🔄</button>
+                <button id="clearCacheBtn" class="clear-cache-btn" onclick="clearCache()" style="display: none;">🗑️</button>
             </div>
         </div>
     </div>
@@ -957,7 +1104,7 @@
 
         <div id="welcome" class="welcome-screen">
             <div class="welcome-content">
-                <h2>🌐 Welcome to GitHub Repository Explorer</h2>
+                <h2>🌐 Welcome to GitHub Explorer</h2>
                 <p>Click the "🔄 Load GitHub Data" button above to start exploring your repositories and HTML files. Data will be cached locally for faster subsequent loads.</p>
                 <div class="welcome-features">
                     <div class="feature">
@@ -991,6 +1138,10 @@
 
         <div id="htmlContainer" class="hidden">
             <div id="htmlGrid" class="html-grid"></div>
+        </div>
+
+        <div id="simpleContainer" class="simple-html-container hidden">
+            <div id="simpleHtmlButtons" class="simple-html-buttons"></div>
         </div>
 
         <div id="noResults" class="no-results hidden">
@@ -1080,6 +1231,8 @@
         const repoGrid = document.getElementById('repoGrid');
         const htmlContainer = document.getElementById('htmlContainer');
         const htmlGrid = document.getElementById('htmlGrid');
+        const simpleContainer = document.getElementById('simpleContainer');
+        const simpleHtmlButtons = document.getElementById('simpleHtmlButtons');
         const noResultsEl = document.getElementById('noResults');
         const welcomeEl = document.getElementById('welcome');
         const searchInput = document.getElementById('searchInput');
@@ -1087,6 +1240,7 @@
         const listViewBtn = document.getElementById('listView');
         const repoModeBtn = document.getElementById('repoMode');
         const htmlModeBtn = document.getElementById('htmlMode');
+        const simpleModeBtn = document.getElementById('simpleMode');
         const viewToggle = document.getElementById('viewToggle');
         const loadDataBtn = document.getElementById('loadDataBtn');
         const clearCacheBtn = document.getElementById('clearCacheBtn');
@@ -1153,14 +1307,33 @@
 
         // Update load button text based on cached data
         function updateLoadButton() {
+            const isMobile = window.innerWidth <= 768;
+            
             if (lastDataLoad) {
                 const timeAgo = getTimeAgo(lastDataLoad);
-                loadDataBtn.textContent = `🔄 Refresh Data (${timeAgo})`;
-                loadDataBtn.title = `Last loaded: ${lastDataLoad.toLocaleString()}`;
+                if (isMobile) {
+                    loadDataBtn.innerHTML = '🔄';
+                    loadDataBtn.title = `Refresh Data (${timeAgo}) - Last loaded: ${lastDataLoad.toLocaleString()}`;
+                } else {
+                    loadDataBtn.textContent = `🔄 Refresh Data (${timeAgo})`;
+                    loadDataBtn.title = `Last loaded: ${lastDataLoad.toLocaleString()}`;
+                }
                 clearCacheBtn.style.display = 'inline-block';
+                if (isMobile) {
+                    clearCacheBtn.innerHTML = '🗑️';
+                    clearCacheBtn.title = 'Clear Cache';
+                } else {
+                    clearCacheBtn.innerHTML = '🗑️ Clear Cache';
+                    clearCacheBtn.title = '';
+                }
             } else {
-                loadDataBtn.textContent = '🔄 Load GitHub Data';
-                loadDataBtn.title = 'Load data from GitHub';
+                if (isMobile) {
+                    loadDataBtn.innerHTML = '🔄';
+                    loadDataBtn.title = 'Load GitHub Data';
+                } else {
+                    loadDataBtn.textContent = '🔄 Load GitHub Data';
+                    loadDataBtn.title = 'Load data from GitHub';
+                }
                 clearCacheBtn.style.display = 'none';
             }
         }
@@ -1209,7 +1382,13 @@
                 
                 // Disable the load button
                 loadDataBtn.disabled = true;
-                loadDataBtn.textContent = '🔄 Loading...';
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    loadDataBtn.innerHTML = '🔄';
+                    loadDataBtn.title = 'Loading...';
+                } else {
+                    loadDataBtn.textContent = '🔄 Loading...';
+                }
                 
                 await loadRepositories();
                 
@@ -1235,6 +1414,7 @@
             listViewBtn.addEventListener('click', () => switchView('list'));
             repoModeBtn.addEventListener('click', () => switchMode('repo'));
             htmlModeBtn.addEventListener('click', () => switchMode('html'));
+            simpleModeBtn.addEventListener('click', () => switchMode('simple'));
             
             // Update mode buttons for default HTML mode
             repoModeBtn.classList.remove('active');
@@ -1265,17 +1445,37 @@
                     closeCodeModal();
                 }
             });
+
+            // Update button text on window resize
+            window.addEventListener('resize', () => {
+                updateTokenButton();
+                updateLoadButton();
+            });
         }
 
         // Update token button appearance
         function updateTokenButton() {
             const tokenBtn = document.getElementById('tokenBtn');
+            const isMobile = window.innerWidth <= 768;
+            
             if (githubToken) {
+                if (isMobile) {
+                    tokenBtn.innerHTML = '🔑';
+                    tokenBtn.title = 'GitHub Token Active';
+                } else {
+                    tokenBtn.innerHTML = '🔑 Token Active';
+                    tokenBtn.title = '';
+                }
                 tokenBtn.classList.add('has-token');
-                tokenBtn.innerHTML = '🔑 Token Active';
             } else {
+                if (isMobile) {
+                    tokenBtn.innerHTML = '🔑';
+                    tokenBtn.title = 'Add GitHub API Token';
+                } else {
+                    tokenBtn.innerHTML = '🔑 API Token';
+                    tokenBtn.title = '';
+                }
                 tokenBtn.classList.remove('has-token');
-                tokenBtn.innerHTML = '🔑 API Token';
             }
         }
 
@@ -1468,22 +1668,27 @@
             loadingEl.style.display = 'none';
         }
 
-        // Switch between repo and html mode
+        // Switch between repo, html, and simple mode
         async function switchMode(mode) {
             currentMode = mode;
             repoModeBtn.classList.toggle('active', mode === 'repo');
             htmlModeBtn.classList.toggle('active', mode === 'html');
+            simpleModeBtn.classList.toggle('active', mode === 'simple');
             
-            // Show/hide view toggle based on mode
-            viewToggle.classList.toggle('hidden', mode === 'html');
+            // Show/hide view toggle based on mode (only show for repo mode)
+            viewToggle.classList.toggle('hidden', mode !== 'repo');
             
             // Update search placeholder
-            searchInput.placeholder = mode === 'repo' 
-                ? 'Search repositories and files...' 
-                : 'Search HTML files...';
+            if (mode === 'repo') {
+                searchInput.placeholder = 'Search repositories and files...';
+            } else if (mode === 'html') {
+                searchInput.placeholder = 'Search HTML files...';
+            } else if (mode === 'simple') {
+                searchInput.placeholder = 'Search HTML files...';
+            }
             
-            // Load HTML files when switching to HTML mode (if not already loaded)
-            if (mode === 'html' && htmlFiles.length === 0 && repositories.length > 0) {
+            // Load HTML files when switching to HTML or Simple mode (if not already loaded)
+            if ((mode === 'html' || mode === 'simple') && htmlFiles.length === 0 && repositories.length > 0) {
                 showLoading(true);
                 await loadAllHtmlFiles();
                 showLoading(false);
@@ -1515,11 +1720,18 @@
             if (currentMode === 'repo') {
                 repoContainer.style.display = 'block';
                 htmlContainer.style.display = 'none';
+                simpleContainer.style.display = 'none';
                 renderRepositories();
-            } else {
+            } else if (currentMode === 'html') {
                 repoContainer.style.display = 'none';
                 htmlContainer.style.display = 'block';
+                simpleContainer.style.display = 'none';
                 renderHtmlFiles();
+            } else if (currentMode === 'simple') {
+                repoContainer.style.display = 'none';
+                htmlContainer.style.display = 'none';
+                simpleContainer.style.display = 'block';
+                renderSimpleHtml();
             }
         }
 
@@ -1935,6 +2147,64 @@
             }
             
             htmlGrid.innerHTML = headerInfo + filteredFiles.map(file => createHtmlFileCard(file)).join('');
+        }
+
+        // Render Simple HTML mode with buttons sorted by last modified date
+        function renderSimpleHtml() {
+            const filteredFiles = filterHtmlFiles();
+            
+            if (filteredFiles.length === 0) {
+                simpleContainer.style.display = 'none';
+                noResultsEl.style.display = 'block';
+                
+                if (rateLimitExceeded && !githubToken) {
+                    noResultsEl.innerHTML = `
+                        🚫 <strong>Rate limit reached while scanning repositories.</strong><br><br>
+                        ${htmlFiles.length > 0 ? `Found ${htmlFiles.length} HTML files before limit was reached.<br><br>` : ''}
+                        💡 <strong>Options:</strong><br>
+                        • Wait for rate limit to reset (resets every hour)<br>
+                        • Add a GitHub token for 5,000 requests/hour<br>
+                        • Use Repository Manager mode to browse files manually
+                    `;
+                } else if (searchTerm) {
+                    noResultsEl.innerHTML = '🔍 No HTML files found matching your search.';
+                } else if (!githubToken) {
+                    noResultsEl.innerHTML = `
+                        🌐 <strong>Limited scan complete</strong><br><br>
+                        Scanned first 10 repositories without GitHub token.<br>
+                        Found ${htmlFiles.length} HTML files.<br><br>
+                        💡 Add a GitHub token to scan all repositories.
+                    `;
+                } else {
+                    noResultsEl.innerHTML = '🌐 No HTML files found in your repositories.';
+                }
+                return;
+            }
+
+            simpleContainer.style.display = 'block';
+            noResultsEl.style.display = 'none';
+            
+            // Sort files by last modified date (descending)
+            const sortedFiles = [...filteredFiles].sort((a, b) => {
+                const dateA = new Date(a.fileCreated || a.repoCreated);
+                const dateB = new Date(b.fileCreated || b.repoCreated);
+                return dateB - dateA;
+            });
+
+            // Create simple buttons with file paths and inline actions
+            simpleHtmlButtons.innerHTML = sortedFiles.map(file => `
+                <div class="simple-html-button">
+                    <div class="simple-actions">
+                        <button class="simple-action-btn simple-code-btn" onclick="event.stopPropagation(); viewHtmlCode('${file.downloadUrl}', '${file.name}', '${file.repo}', '${file.path}')">
+                            📄
+                        </button>
+                        <button class="simple-action-btn simple-launch-btn" onclick="event.stopPropagation(); launchHtmlPage('${file.githubPagesUrl}', '${file.downloadUrl}', '${file.name}', '${file.repo}')">
+                            ▶️
+                        </button>
+                    </div>
+                    <span class="simple-file-path">${file.repo}/${file.path}</span>
+                </div>
+            `).join('');
         }
 
         // Create HTML file card
