@@ -431,27 +431,53 @@
         .html-file-path {
             font-size: 0.8rem;
             color: #8b949e;
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
             font-family: 'Courier New', monospace;
             background: rgba(33, 38, 45, 0.8);
-            padding: 0.25rem 0.5rem;
+            padding: 0.5rem;
             border-radius: 4px;
+        }
+
+        .html-file-dates {
+            background: rgba(33, 38, 45, 0.6);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 165, 0, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .date-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .date-label {
+            color: #8b949e;
+            font-weight: 500;
+        }
+
+        .date-value {
+            color: #e6edf3;
+            font-weight: 600;
         }
 
         .html-file-meta {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            font-size: 0.8rem;
-            color: #8b949e;
-            border-top: 1px solid rgba(255, 165, 0, 0.2);
-            padding-top: 0.75rem;
         }
 
         .html-file-actions {
             display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
         }
 
         .action-button {
@@ -896,7 +922,7 @@
         
         // Application state
         let repositories = [];
-        let currentMode = 'repo'; // 'repo' or 'html'
+        let currentMode = 'html'; // Default to 'html' mode instead of 'repo'
         let currentView = 'tree';
         let searchTerm = '';
         let expandedRepos = new Set();
@@ -931,6 +957,12 @@
             listViewBtn.addEventListener('click', () => switchView('list'));
             repoModeBtn.addEventListener('click', () => switchMode('repo'));
             htmlModeBtn.addEventListener('click', () => switchMode('html'));
+            
+            // Update mode buttons for default HTML mode
+            repoModeBtn.classList.remove('active');
+            htmlModeBtn.classList.add('active');
+            viewToggle.classList.add('hidden');
+            searchInput.placeholder = 'Search HTML files...';
             
             // Update token button appearance
             updateTokenButton();
@@ -1129,11 +1161,8 @@
                 repositories = await response.json();
                 repositories.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
                 
-                // Only load HTML files if we have a token or if user switches to HTML mode
-                // This saves API calls for users without tokens
-                if (githubToken) {
-                    await loadAllHtmlFiles();
-                }
+                // Always load HTML files since we default to HTML mode
+                await loadAllHtmlFiles();
                 
                 showLoading(false);
                 renderCurrentMode();
@@ -1428,7 +1457,7 @@
         async function loadAllHtmlFiles() {
             htmlFiles = [];
             let scannedRepos = 0;
-            const maxReposToScan = githubToken ? repositories.length : Math.min(10, repositories.length);
+            const maxReposToScan = githubToken ? repositories.length : Math.min(8, repositories.length);
             
             // Show progress for users without token
             if (!githubToken) {
@@ -1452,14 +1481,18 @@
                 
                 // Add small delay to avoid hitting rate limits too quickly
                 if (!githubToken && i < maxReposToScan - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
             }
             
-            // Sort HTML files by repository name, then by file name
+            // Sort HTML files by actual file modification date, then by file name
             htmlFiles.sort((a, b) => {
-                if (a.repo !== b.repo) return a.repo.localeCompare(b.repo);
-                return a.name.localeCompare(b.name);
+                const dateA = new Date(a.fileModified);
+                const dateB = new Date(b.fileModified);
+                if (dateA.getTime() !== dateB.getTime()) {
+                    return dateB - dateA; // Most recent first
+                }
+                return a.name.localeCompare(b.name); // Then by filename
             });
             
             console.log(`Found ${htmlFiles.length} HTML files in ${scannedRepos} repositories`);
@@ -1485,6 +1518,9 @@
                 
                 for (const item of contents) {
                     if (item.type === 'file' && item.name.toLowerCase().endsWith('.html')) {
+                        // Get actual file dates from commit history
+                        const fileData = await getFileHistory(repoName, item.path);
+                        
                         htmlFiles.push({
                             name: item.name,
                             path: item.path,
@@ -1494,17 +1530,64 @@
                             htmlUrl: item.html_url,
                             githubPagesUrl: generateGithubPagesUrl(repoName, item.path),
                             size: item.size,
-                            lastModified: repoData.updated_at
+                            repoCreated: repoData.created_at,
+                            fileCreated: fileData.created,
+                            fileModified: fileData.modified
                         });
                     } else if (item.type === 'dir') {
-                        // Recursively search directories (limit depth to avoid API limits)
-                        if (path.split('/').length < 3) {
+                        // Only search first level to avoid too many API calls
+                        if (path === '') {
                             await findHtmlFilesInRepo(repoName, item.path, repoData);
                         }
                     }
                 }
             } catch (error) {
                 // Silently handle errors (private repos, API limits, etc.)
+            }
+        }
+
+        // Get file creation and modification dates from commit history
+        async function getFileHistory(repoName, filePath) {
+            try {
+                const url = `${GITHUB_API_BASE}/repos/${GITHUB_USERNAME}/${repoName}/commits?path=${encodeURIComponent(filePath)}`;
+                const response = await fetch(url, {
+                    headers: getApiHeaders()
+                });
+                
+                if (!response.ok) {
+                    // Fallback to repo dates if we can't get file history
+                    const repo = repositories.find(r => r.name === repoName);
+                    return {
+                        created: repo ? repo.created_at : new Date().toISOString(),
+                        modified: repo ? repo.updated_at : new Date().toISOString()
+                    };
+                }
+
+                const commits = await response.json();
+                
+                if (commits.length === 0) {
+                    const repo = repositories.find(r => r.name === repoName);
+                    return {
+                        created: repo ? repo.created_at : new Date().toISOString(),
+                        modified: repo ? repo.updated_at : new Date().toISOString()
+                    };
+                }
+
+                // Most recent commit is the last modification
+                const modified = commits[0].commit.committer.date;
+                
+                // First commit is the creation (last item in array)
+                const created = commits[commits.length - 1].commit.committer.date;
+                
+                return { created, modified };
+                
+            } catch (error) {
+                // Fallback to repo dates if API call fails
+                const repo = repositories.find(r => r.name === repoName);
+                return {
+                    created: repo ? repo.created_at : new Date().toISOString(),
+                    modified: repo ? repo.updated_at : new Date().toISOString()
+                };
             }
         }
 
@@ -1572,7 +1655,21 @@
 
         // Create HTML file card
         function createHtmlFileCard(file) {
-            const lastModified = new Date(file.lastModified).toLocaleDateString();
+            const repoCreateDate = new Date(file.repoCreated).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            const fileCreateDate = new Date(file.fileCreated).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            const fileModifyDate = new Date(file.fileModified).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
             const fileSize = formatFileSize(file.size);
             
             return `
@@ -1590,33 +1687,34 @@
                     <div class="html-file-path">
                         ${file.path}
                     </div>
+
+                    <div class="html-file-dates">
+                        <div class="date-row">
+                            <span class="date-label">📁 Repo Created:</span>
+                            <span class="date-value">${repoCreateDate}</span>
+                        </div>
+                        <div class="date-row">
+                            <span class="date-label">📄 File Created:</span>
+                            <span class="date-value">${fileCreateDate}</span>
+                        </div>
+                        <div class="date-row">
+                            <span class="date-label">🔄 File Modified:</span>
+                            <span class="date-value">${fileModifyDate}</span>
+                        </div>
+                        <div class="date-row">
+                            <span class="date-label">📦 File Size:</span>
+                            <span class="date-value">${fileSize}</span>
+                        </div>
+                    </div>
                     
                     <div class="html-file-meta">
-                        <div>
-                            <div>📅 ${lastModified}</div>
-                            <div>📦 ${fileSize}</div>
-                        </div>
                         <div class="html-file-actions">
                             <button class="action-button code-button" onclick="viewHtmlCode('${file.downloadUrl}', '${file.name}', '${file.repo}', '${file.path}')">
                                 📄 View Code
                             </button>
                             <button class="action-button launch-button" onclick="launchHtmlPage('${file.githubPagesUrl}', '${file.downloadUrl}', '${file.name}', '${file.repo}')">
-                                🚀 Launch Web
+                                🚀 Launch App
                             </button>
-                        </div>
-                        
-                        <div class="launch-urls" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255, 165, 0, 0.2); font-size: 0.75rem;">
-                            <div style="color: #8b949e; margin-bottom: 0.25rem;">Launch URLs:</div>
-                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                <a href="${file.githubPagesUrl}" target="_blank" style="color: #58a6ff; text-decoration: none; word-break: break-all;" 
-                                   onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
-                                    🌐 ${file.githubPagesUrl}
-                                </a>
-                                <a href="${file.downloadUrl}" target="_blank" style="color: #8b949e; text-decoration: none; word-break: break-all;" 
-                                   onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
-                                    📄 Raw: ${file.downloadUrl}
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>
