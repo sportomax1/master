@@ -671,6 +671,50 @@
             border-color: #2ea043;
         }
 
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .load-data-btn, .clear-cache-btn {
+            background: linear-gradient(135deg, #7c3aed, #58a6ff);
+            border: 1px solid #7c3aed;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .clear-cache-btn {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            border-color: #dc2626;
+        }
+
+        .load-data-btn:hover, .clear-cache-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .load-data-btn:hover {
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        .clear-cache-btn:hover {
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+        }
+
+        .load-data-btn:disabled, .clear-cache-btn:disabled {
+            background: #475569;
+            border-color: #475569;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -780,6 +824,71 @@
             font-size: 0.9rem;
         }
 
+        .welcome-screen {
+            text-align: center;
+            padding: 3rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .welcome-content h2 {
+            color: #58a6ff;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-content p {
+            color: #8b949e;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature {
+            background: rgba(33, 38, 45, 0.8);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(88, 166, 255, 0.1);
+        }
+
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: #58a6ff;
+            flex-shrink: 0;
+        }
+
+        .feature h3 {
+            color: #e6edf3;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature p {
+            color: #8b949e;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
         @media (max-width: 768px) {
             .controls {
                 flex-direction: column;
@@ -829,17 +938,51 @@
                 <button id="listView">📄 List View</button>
             </div>
             
-            <button id="tokenBtn" class="token-btn" onclick="showTokenDialog()">🔑 API Token</button>
+            <div class="button-group">
+                <button id="tokenBtn" class="token-btn" onclick="showTokenDialog()">🔑 API Token</button>
+                <button id="loadDataBtn" class="load-data-btn" onclick="loadGitHubData()">🔄 Load GitHub Data</button>
+                <button id="clearCacheBtn" class="clear-cache-btn" onclick="clearCache()" style="display: none;">🗑️ Clear Cache</button>
+            </div>
         </div>
     </div>
 
     <div class="container">
-        <div id="loading" class="loading">
+        <div id="loading" class="loading" style="display: none;">
             🔄 Loading repositories...
         </div>
         
         <div id="error" class="error hidden">
             ❌ Error loading repositories. Please check your internet connection and try again.
+        </div>
+
+        <div id="welcome" class="welcome-screen">
+            <div class="welcome-content">
+                <h2>🌐 Welcome to GitHub Repository Explorer</h2>
+                <p>Click the "🔄 Load GitHub Data" button above to start exploring your repositories and HTML files. Data will be cached locally for faster subsequent loads.</p>
+                <div class="welcome-features">
+                    <div class="feature">
+                        <span class="feature-icon">📊</span>
+                        <div>
+                            <h3>Repository Manager</h3>
+                            <p>Browse all your repositories with file tree navigation</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🌐</span>
+                        <div>
+                            <h3>HTML Web Viewer</h3>
+                            <p>Quick access to all your HTML files with launch capabilities</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🔑</span>
+                        <div>
+                            <h3>GitHub Token Support</h3>
+                            <p>Add your token for higher rate limits and full repository scanning</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="repoContainer" class="hidden">
@@ -928,6 +1071,7 @@
         let expandedRepos = new Set();
         let htmlFiles = [];
         let rateLimitExceeded = false;
+        let lastDataLoad = null;
 
         // DOM elements
         const loadingEl = document.getElementById('loading');
@@ -937,17 +1081,151 @@
         const htmlContainer = document.getElementById('htmlContainer');
         const htmlGrid = document.getElementById('htmlGrid');
         const noResultsEl = document.getElementById('noResults');
+        const welcomeEl = document.getElementById('welcome');
         const searchInput = document.getElementById('searchInput');
         const treeViewBtn = document.getElementById('treeView');
         const listViewBtn = document.getElementById('listView');
         const repoModeBtn = document.getElementById('repoMode');
         const htmlModeBtn = document.getElementById('htmlMode');
         const viewToggle = document.getElementById('viewToggle');
+        const loadDataBtn = document.getElementById('loadDataBtn');
+        const clearCacheBtn = document.getElementById('clearCacheBtn');
 
         // Initialize the application
         async function init() {
             setupEventListeners();
-            await loadRepositories();
+            loadCachedData();
+        }
+
+        // Load cached data from localStorage
+        function loadCachedData() {
+            try {
+                const cachedRepositories = localStorage.getItem('github_repositories');
+                const cachedHtmlFiles = localStorage.getItem('github_html_files');
+                const cachedTimestamp = localStorage.getItem('github_data_timestamp');
+                
+                if (cachedRepositories && cachedHtmlFiles && cachedTimestamp) {
+                    repositories = JSON.parse(cachedRepositories);
+                    htmlFiles = JSON.parse(cachedHtmlFiles);
+                    lastDataLoad = new Date(cachedTimestamp);
+                    
+                    console.log(`Loaded cached data from ${lastDataLoad.toLocaleString()}`);
+                    console.log(`Found ${repositories.length} repositories and ${htmlFiles.length} HTML files in cache`);
+                    
+                    // Show cached data instead of welcome screen
+                    renderCurrentMode();
+                    updateLoadButton();
+                    clearCacheBtn.style.display = 'inline-block';
+                    return;
+                }
+            } catch (error) {
+                console.log('Error loading cached data:', error);
+                clearCachedData();
+            }
+            
+            // No cached data, show welcome screen
+            showWelcomeScreen();
+        }
+
+        // Save data to localStorage
+        function saveCachedData() {
+            try {
+                localStorage.setItem('github_repositories', JSON.stringify(repositories));
+                localStorage.setItem('github_html_files', JSON.stringify(htmlFiles));
+                localStorage.setItem('github_data_timestamp', new Date().toISOString());
+                lastDataLoad = new Date();
+                
+                console.log(`Cached ${repositories.length} repositories and ${htmlFiles.length} HTML files`);
+            } catch (error) {
+                console.log('Error saving cached data:', error);
+            }
+        }
+
+        // Clear cached data
+        function clearCachedData() {
+            localStorage.removeItem('github_repositories');
+            localStorage.removeItem('github_html_files');
+            localStorage.removeItem('github_data_timestamp');
+            repositories = [];
+            htmlFiles = [];
+            lastDataLoad = null;
+        }
+
+        // Update load button text based on cached data
+        function updateLoadButton() {
+            if (lastDataLoad) {
+                const timeAgo = getTimeAgo(lastDataLoad);
+                loadDataBtn.textContent = `🔄 Refresh Data (${timeAgo})`;
+                loadDataBtn.title = `Last loaded: ${lastDataLoad.toLocaleString()}`;
+                clearCacheBtn.style.display = 'inline-block';
+            } else {
+                loadDataBtn.textContent = '🔄 Load GitHub Data';
+                loadDataBtn.title = 'Load data from GitHub';
+                clearCacheBtn.style.display = 'none';
+            }
+        }
+
+        // Get human-readable time ago
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return `${diffDays}d ago`;
+        }
+
+        // Clear cache and reset to welcome screen
+        function clearCache() {
+            if (confirm('Are you sure you want to clear all cached data? This will require reloading from GitHub.')) {
+                clearCachedData();
+                showWelcomeScreen();
+                clearCacheBtn.style.display = 'none';
+                console.log('Cache cleared successfully');
+            }
+        }
+
+        // Show welcome screen
+        function showWelcomeScreen() {
+            welcomeEl.style.display = 'block';
+            repoContainer.style.display = 'none';
+            htmlContainer.style.display = 'none';
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'none';
+            noResultsEl.style.display = 'none';
+            updateLoadButton();
+        }
+
+        // Load GitHub data when button is clicked
+        async function loadGitHubData() {
+            try {
+                // Hide welcome screen and show loading
+                welcomeEl.style.display = 'none';
+                showLoading(true);
+                
+                // Disable the load button
+                loadDataBtn.disabled = true;
+                loadDataBtn.textContent = '🔄 Loading...';
+                
+                await loadRepositories();
+                
+                // Save data to cache after successful load
+                saveCachedData();
+                updateLoadButton();
+                
+            } catch (error) {
+                console.error('Error loading GitHub data:', error);
+                showError(true);
+                showLoading(false);
+            } finally {
+                // Re-enable the load button
+                loadDataBtn.disabled = false;
+                updateLoadButton();
+            }
         }
 
         // Setup event listeners
@@ -1176,14 +1454,18 @@
 
         // Show/hide loading state
         function showLoading(show) {
-            loadingEl.classList.toggle('hidden', !show);
-            repoContainer.classList.toggle('hidden', show || currentMode !== 'repo');
-            htmlContainer.classList.toggle('hidden', show || currentMode !== 'html');
+            loadingEl.style.display = show ? 'block' : 'none';
+            welcomeEl.style.display = 'none';
+            if (!show) {
+                renderCurrentMode();
+            }
         }
 
         // Show/hide error state
         function showError(show) {
-            errorEl.classList.toggle('hidden', !show);
+            errorEl.style.display = show ? 'block' : 'none';
+            welcomeEl.style.display = 'none';
+            loadingEl.style.display = 'none';
         }
 
         // Switch between repo and html mode
@@ -1228,13 +1510,15 @@
 
         // Render current mode
         function renderCurrentMode() {
+            welcomeEl.style.display = 'none';
+            
             if (currentMode === 'repo') {
-                repoContainer.classList.remove('hidden');
-                htmlContainer.classList.add('hidden');
+                repoContainer.style.display = 'block';
+                htmlContainer.style.display = 'none';
                 renderRepositories();
             } else {
-                repoContainer.classList.add('hidden');
-                htmlContainer.classList.remove('hidden');
+                repoContainer.style.display = 'none';
+                htmlContainer.style.display = 'block';
                 renderHtmlFiles();
             }
         }
@@ -1254,13 +1538,13 @@
             const filteredRepos = filterRepositories();
             
             if (filteredRepos.length === 0) {
-                repoContainer.classList.add('hidden');
-                noResultsEl.classList.remove('hidden');
+                repoContainer.style.display = 'none';
+                noResultsEl.style.display = 'block';
                 return;
             }
 
-            repoContainer.classList.remove('hidden');
-            noResultsEl.classList.add('hidden');
+            repoContainer.style.display = 'block';
+            noResultsEl.style.display = 'none';
             
             repoGrid.innerHTML = filteredRepos.map(repo => createRepoCard(repo)).join('');
         }
@@ -1607,8 +1891,8 @@
             const filteredFiles = filterHtmlFiles();
             
             if (filteredFiles.length === 0) {
-                htmlContainer.classList.add('hidden');
-                noResultsEl.classList.remove('hidden');
+                htmlContainer.style.display = 'none';
+                noResultsEl.style.display = 'block';
                 
                 if (rateLimitExceeded && !githubToken) {
                     noResultsEl.innerHTML = `
@@ -1634,8 +1918,8 @@
                 return;
             }
 
-            htmlContainer.classList.remove('hidden');
-            noResultsEl.classList.add('hidden');
+            htmlContainer.style.display = 'block';
+            noResultsEl.style.display = 'none';
             
             // Add info header if scanning was limited
             let headerInfo = '';
