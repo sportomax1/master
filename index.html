@@ -48,6 +48,7 @@
             align-items: center;
             margin-top: 1rem;
             flex-wrap: wrap;
+            justify-content: space-between;
         }
 
         .search-box {
@@ -89,7 +90,8 @@
             border-radius: 8px;
             border: 1px solid #30363d;
             overflow: hidden;
-            margin-right: auto;
+            flex: 1;
+            max-width: 300px;
         }
 
         .mode-toggle button {
@@ -101,6 +103,8 @@
             transition: all 0.3s ease;
             font-size: 0.95rem;
             font-weight: 500;
+            flex: 1;
+            text-align: center;
         }
 
         .mode-toggle button.active {
@@ -366,31 +370,35 @@
         }
 
         .simple-html-container {
-            padding: 2rem;
+            padding: 1rem 0.5rem;
         }
 
         .simple-html-buttons {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 0.75rem;
-            max-width: 800px;
-            margin: 0 auto;
+            max-width: 100%;
+            margin: 0;
         }
 
         .simple-html-button {
-            background: linear-gradient(135deg, #21262d, #30363d);
+            background: rgba(33, 38, 45, 0.8);
             border: 1px solid #30363d;
             border-radius: 8px;
-            padding: 1rem 1rem;
+            padding: 1rem;
             color: #e6edf3;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            border-left: 4px solid #7c3aed;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 1rem;
             text-align: left;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            width: 100%;
+            max-width: none;
+            min-height: 60px;
         }
 
         .simple-html-button::before {
@@ -422,11 +430,29 @@
             font-size: 1rem;
             font-weight: 500;
             color: #e6edf3;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            line-height: 1.4;
         }
 
         .simple-actions {
             display: flex;
             gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .simple-days-indicator {
+            background: white;
+            color: black;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
             flex-shrink: 0;
         }
 
@@ -570,6 +596,21 @@
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        .days-indicator {
+            background: white;
+            color: black;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
         }
 
         .html-file-actions {
@@ -1004,6 +1045,8 @@
             .mode-toggle {
                 margin-right: 0;
                 order: 1;
+                flex: 1;
+                max-width: none;
             }
 
             .view-toggle {
@@ -1015,7 +1058,7 @@
                 gap: 0.25rem;
             }
 
-            .repo-grid, .html-grid {
+            .repo-grid, .html-grid, .simple-html-buttons {
                 grid-template-columns: 1fr;
             }
 
@@ -1034,7 +1077,11 @@
             }
 
             .container {
-                padding: 0.75rem;
+                padding: 0.5rem;
+            }
+
+            .simple-html-container {
+                padding: 0.5rem 0.25rem;
             }
 
             .simple-html-button {
@@ -1216,7 +1263,7 @@
         
         // Application state
         let repositories = [];
-        let currentMode = 'html'; // Default to 'html' mode instead of 'repo'
+        let currentMode = 'simple'; // Default to 'simple' mode
         let currentView = 'tree';
         let searchTerm = '';
         let expandedRepos = new Set();
@@ -1416,9 +1463,10 @@
             htmlModeBtn.addEventListener('click', () => switchMode('html'));
             simpleModeBtn.addEventListener('click', () => switchMode('simple'));
             
-            // Update mode buttons for default HTML mode
+            // Update mode buttons for default Simple mode
             repoModeBtn.classList.remove('active');
-            htmlModeBtn.classList.add('active');
+            htmlModeBtn.classList.remove('active');
+            simpleModeBtn.classList.add('active');
             viewToggle.classList.add('hidden');
             searchInput.placeholder = 'Search HTML files...';
             
@@ -2192,19 +2240,25 @@
             });
 
             // Create simple buttons with file paths and inline actions
-            simpleHtmlButtons.innerHTML = sortedFiles.map(file => `
-                <div class="simple-html-button">
-                    <div class="simple-actions">
-                        <button class="simple-action-btn simple-code-btn" onclick="event.stopPropagation(); viewHtmlCode('${file.downloadUrl}', '${file.name}', '${file.repo}', '${file.path}')">
-                            📄
-                        </button>
-                        <button class="simple-action-btn simple-launch-btn" onclick="event.stopPropagation(); launchHtmlPage('${file.githubPagesUrl}', '${file.downloadUrl}', '${file.name}', '${file.repo}')">
+            simpleHtmlButtons.innerHTML = sortedFiles.map(file => {
+                // Calculate days since file was last modified
+                const now = new Date();
+                const fileModified = new Date(file.fileModified);
+                const daysSinceUpdate = Math.floor((now - fileModified) / (1000 * 60 * 60 * 24));
+                
+                return `
+                    <div class="simple-html-button">
+                        <span style="font-size: 1.5rem;">🌐</span>
+                        <button class="simple-action-btn simple-launch-btn" onclick="event.stopPropagation(); launchHtmlPage('${file.githubPagesUrl}', '${file.downloadUrl}', '${file.name}', '${file.repo}')" style="background: linear-gradient(135deg, #238636, #2ea043); border: none; color: white; padding: 0.5rem; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
                             ▶️
                         </button>
+                        <div class="simple-days-indicator">
+                            ${daysSinceUpdate}
+                        </div>
+                        <span class="simple-file-path" style="flex: 1;">${file.repo}/${file.path}</span>
                     </div>
-                    <span class="simple-file-path">${file.repo}/${file.path}</span>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // Create HTML file card
